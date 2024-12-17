@@ -246,6 +246,7 @@ class Solution:
                         l[j, m - i - j] = l_d[j]
             return self.naive_labeling(l)
 
+        # update the dictionary
         direction_to_slice[1] = self.dp_labeling(ssdd_tensor, p1, p2)
         direction_to_slice[3] = self.dp_labeling(ssdd_tensor.transpose(1, 0, 2), p1, p2).transpose(1, 0)
         direction_to_slice[2] = diag2(ssdd_tensor, p1, p2)
