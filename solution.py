@@ -120,7 +120,6 @@ class Solution:
         """INSERT YOUR CODE HERE"""
         # Initialize the first colum
         l_slice[:, 0] = c_slice[:, 0]
-        print(l_slice.shape)
 
         #loop over all other columns
         for j, c in enumerate(c_slice.T[1:], start=1):
@@ -145,8 +144,6 @@ class Solution:
                 M_d_col =  min(cost_same, cost_1, cost_2)
                 # update add and normalize
                 l_slice[d, j] = c[d] + M_d_col - min(l_slice[:, j - 1])
-
-
 
         """END YOUR CODE HERE"""
         return l_slice
@@ -173,7 +170,6 @@ class Solution:
             Dynamic Programming depth estimation matrix of shape HxW.
         """
         l = np.zeros_like(ssdd_tensor)
-        print(l.shape)
         """INSERT YOUR CODE HERE"""
         for row in range(ssdd_tensor.shape[0]):
             l[row, :, :] = self.dp_grade_slice(ssdd_tensor[row, :, :].T, p1, p2).T
@@ -209,10 +205,53 @@ class Solution:
             corresponding dynamic programming estimation of depth based on
             that direction.
         """
+        print("initiating..")
         num_of_directions = 8
         l = np.zeros_like(ssdd_tensor)
         direction_to_slice = {}
         """INSERT YOUR CODE HERE"""
+
+        # Diagonal slices
+
+        def diag2(ssdd_tensor, p1, p2):
+            # build a depth map for the dia
+            l = np.zeros_like(ssdd_tensor)
+            # loop over all diagonals
+            for i in range(-ssdd_tensor.shape[0] + 1, ssdd_tensor.shape[1]):
+                # choose one diagonal from m + n - 1 diagonals
+                array_to_slice = np.diagonal(ssdd_tensor, i, axis1=0, axis2=1)
+
+                l_d = self.dp_grade_slice(array_to_slice, p1, p2).T
+                for j in range(l_d.shape[0]):
+                    if i < 0:
+                        l[-i + j, j] = l_d[j]
+                    else:
+                        l[j, j + i] = l_d[j]
+            return self.naive_labeling(l)
+
+        def diag4(ssdd_tensor, p1, p2):
+            # build a depth map for the dia
+            l = np.zeros_like(ssdd_tensor)
+            m = ssdd_tensor.shape[1] - 1
+            # loop over all diagonals
+            for i in range(-ssdd_tensor.shape[0] + 1, ssdd_tensor.shape[1]):
+                # choose one diagonal from m + n - 1 diagonals
+                array_to_slice = np.fliplr(ssdd_tensor).diagonal(i)
+
+                l_d = self.dp_grade_slice(array_to_slice, p1, p2).T
+                for j in range(l_d.shape[0]):
+                    if i < 0:
+                        l[-i + j, m - 1 - j] = l_d[j]
+                    else:
+                        l[j, m - i - j] = l_d[j]
+            return self.naive_labeling(l)
+
+        direction_to_slice[1] = self.dp_labeling(ssdd_tensor, p1, p2)
+        direction_to_slice[3] = self.dp_labeling(ssdd_tensor.transpose(1, 0, 2), p1, p2).transpose(1, 0)
+        direction_to_slice[2] = diag2(ssdd_tensor, p1, p2)
+        direction_to_slice[4] = diag4(ssdd_tensor, p1, p2)
+
+        """END YOUR CODE HERE   """
         return direction_to_slice
 
     def sgm_labeling(self, ssdd_tensor: np.ndarray, p1: float, p2: float):
