@@ -217,16 +217,16 @@ class Solution:
             # build a depth map for the dia
             l = np.zeros_like(ssdd_tensor)
             # loop over all diagonals
-            for i in range(-ssdd_tensor.shape[0] + 1, ssdd_tensor.shape[1]):
+            for i in range(-ssdd_tensor.shape[0] + 1,ssdd_tensor.shape[1]):
                 # choose one diagonal from m + n - 1 diagonals
                 array_to_slice = np.diagonal(ssdd_tensor, i, axis1=0, axis2=1)
 
                 l_d = self.dp_grade_slice(array_to_slice, p1, p2).T
                 for j in range(l_d.shape[0]):
                     if i < 0:
-                        l[-i + j, j] = l_d[j]
+                        l[-i+j, j] = l_d[j]
                     else:
-                        l[j, j + i] = l_d[j]
+                        l[j, j+i] = l_d[j]
             return self.naive_labeling(l)
 
         def diag4(ssdd_tensor, p1, p2):
@@ -234,23 +234,28 @@ class Solution:
             l = np.zeros_like(ssdd_tensor)
             m = ssdd_tensor.shape[1] - 1
             # loop over all diagonals
-            for i in range(-ssdd_tensor.shape[0] + 1, ssdd_tensor.shape[1]):
+            for i in range(-ssdd_tensor.shape[0] + 1,ssdd_tensor.shape[1]):
                 # choose one diagonal from m + n - 1 diagonals
-                array_to_slice = np.fliplr(ssdd_tensor).diagonal(i)
+                array_to_slice =np.fliplr(ssdd_tensor).diagonal(i)
 
                 l_d = self.dp_grade_slice(array_to_slice, p1, p2).T
                 for j in range(l_d.shape[0]):
                     if i < 0:
-                        l[-i + j, m - 1 - j] = l_d[j]
+                        l[-i+j, m-1-j] = l_d[j]
                     else:
-                        l[j, m - i - j] = l_d[j]
+                        l[j, m-i-j] = l_d[j]
             return self.naive_labeling(l)
 
-        # update the dictionary
         direction_to_slice[1] = self.dp_labeling(ssdd_tensor, p1, p2)
         direction_to_slice[3] = self.dp_labeling(ssdd_tensor.transpose(1, 0, 2), p1, p2).transpose(1, 0)
+        direction_to_slice[5] = np.fliplr(self.dp_labeling(np.fliplr(ssdd_tensor), p1, p2))
+        direction_to_slice[7] = np.flipud(self.dp_labeling(np.flipud(ssdd_tensor), p1, p2))
+
         direction_to_slice[2] = diag2(ssdd_tensor, p1, p2)
         direction_to_slice[4] = diag4(ssdd_tensor, p1, p2)
+        direction_to_slice[6] = np.flipud(diag4(np.flipud(ssdd_tensor), p1, p2))
+        direction_to_slice[8] = np.flipud(diag2(np.flipud(ssdd_tensor), p1, p2))
+
 
         """END YOUR CODE HERE   """
         return direction_to_slice
