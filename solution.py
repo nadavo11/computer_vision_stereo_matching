@@ -260,6 +260,30 @@ class Solution:
         """END YOUR CODE HERE   """
         return direction_to_slice
 
+    def diag_loss(self, ssdd_tensor, p1, p2):
+
+        # build a depth map for the dia
+        l = np.zeros_like(ssdd_tensor)
+        # loop over all diagonals
+        for i in range(-ssdd_tensor.shape[0] + 1, ssdd_tensor.shape[1]):
+            # choose one diagonal from m + n - 1 diagonals
+            array_to_slice = np.diagonal(ssdd_tensor, i, axis1=0, axis2=1)
+
+            l_d = self.dp_grade_slice(array_to_slice, p1, p2).T
+            for j in range(l_d.shape[0]):
+                if i < 0:
+                    l[-i + j, j] = l_d[j]
+                else:
+                    l[j, j + i] = l_d[j]
+        return l
+
+
+    def row_loss(self, ssdd_tensor, p1, p2):
+        l = np.zeros_like(ssdd_tensor)
+        for row in range(ssdd_tensor.shape[0]):
+            l[row, :, :] = self.dp_grade_slice(ssdd_tensor[row, :, :].T, p1, p2).T
+        return l
+
     def sgm_labeling(self, ssdd_tensor: np.ndarray, p1: float, p2: float):
         """Estimate the depth map according to the SGM algorithm.
 
@@ -285,4 +309,33 @@ class Solution:
         num_of_directions = 8
         l = np.zeros_like(ssdd_tensor)
         """INSERT YOUR CODE HERE"""
+        # horizontal/ vertical slices
+
+        #1
+        print("initiating 1")
+        l+= self.row_loss(ssdd_tensor, p1, p2)
+        #3
+        print("initiating 3")
+        l+= self.row_loss(ssdd_tensor.transpose(1, 0, 2), p1, p2).transpose(1, 0,2)
+        #5
+        print("initiating 5")
+        l+= np.fliplr(self.row_loss(np.fliplr(ssdd_tensor), p1, p2))
+        #7
+        print("initiating 7")
+        l+= np.flipud(self.row_loss(np.flipud(ssdd_tensor), p1, p2))
+
+        # Diagonal slices
+        #2
+        print("initiating 2")
+        l+= self.diag_loss(ssdd_tensor, p1, p2)
+        #4
+        print("initiating 4")
+        l+= np.fliplr(self.diag_loss(np.fliplr(ssdd_tensor), p1, p2))
+        #6
+        print("initiating 6")
+        l+= np.flipud(np.fliplr(self.diag_loss(np.flipud(np.fliplr(ssdd_tensor)), p1, p2)))
+        #8
+        print("initiating 8")
+        l+= np.flipud(self.diag_loss(np.flipud(ssdd_tensor), p1, p2))
+
         return self.naive_labeling(l)
