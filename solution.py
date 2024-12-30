@@ -249,7 +249,10 @@ class Solution:
         direction_to_slice[1] = self.dp_labeling(ssdd_tensor, p1, p2)
         direction_to_slice[3] = self.dp_labeling(ssdd_tensor.transpose(1, 0, 2), p1, p2).transpose(1, 0)
         direction_to_slice[5] = np.fliplr(self.dp_labeling(np.fliplr(ssdd_tensor), p1, p2))
-        direction_to_slice[7] = np.flipud(self.dp_labeling(np.flipud(ssdd_tensor), p1, p2))
+        # 7 is right rotate 90 degrees
+        direction_to_slice[7] = np.rot90(self.dp_labeling(np.rot90(ssdd_tensor, -1), p1, p2), 1)
+
+
 
         direction_to_slice[2] = diag2(ssdd_tensor, p1, p2)
         direction_to_slice[4] = diag4(ssdd_tensor, p1, p2)
@@ -322,7 +325,7 @@ class Solution:
         l+= np.fliplr(self.row_loss(np.fliplr(ssdd_tensor), p1, p2))
         #7
         print("initiating 7")
-        l+= np.flipud(self.row_loss(np.flipud(ssdd_tensor), p1, p2))
+        l+= np.rot90(self.row_loss(np.rot90(ssdd_tensor, -1), p1, p2), 1)
 
         # Diagonal slices
         #2

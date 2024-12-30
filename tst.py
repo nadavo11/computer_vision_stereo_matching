@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 #
 
 a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-d = np.diagonal(a, 0, axis1=1, axis2=0)
-#get the secondary diagonal
-d=np.fliplr(a).diagonal(-2)
-print(d)
+a = np.rot90(a,-1)
+a = np.rot90(a,1)
+
+print(a)
