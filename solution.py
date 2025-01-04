@@ -1,6 +1,9 @@
 """Stereo matching."""
 import numpy as np
 from scipy.signal import convolve2d
+from scipy.ndimage import median_filter
+
+# from scipy.special import label
 
 
 class Solution:
@@ -342,3 +345,62 @@ class Solution:
         l+= np.flipud(self.diag_loss(np.flipud(ssdd_tensor), p1, p2))
 
         return self.naive_labeling(l)
+
+        """END YOUR CODE HERE"""
+
+    def our_distance_measure(self,left_image,right_image,win_size,dsp_range):
+        # Compute the sum of squared differences between the two images
+        num_of_rows, num_of_cols = left_image.shape[0], left_image.shape[1]
+        disparity_values = range(-dsp_range, dsp_range + 1)
+        ssdd_tensor = np.zeros((num_of_rows,
+                                num_of_cols,
+                                len(disparity_values)))
+
+        """INSERT YOUR CODE HERE"""
+
+        # Define the half window size for easier indexing
+        half_win = win_size // 2
+
+        # Pad the left and right images with zeros
+        left_padded = np.pad(left_image, ((half_win, half_win), (half_win, half_win), (0, 0)), mode='constant',
+                             constant_values=0)
+        right_padded = np.pad(right_image, ((half_win, half_win), (half_win, half_win), (0, 0)), mode='constant',
+                              constant_values=0)
+
+        # Iterate over all disparity values
+        for d_idx, d in enumerate(disparity_values):
+            # Shift the right image horizontally based on disparity
+            if d < 0:
+                shifted_right = np.pad(right_padded[:, :d, :], ((0, 0), (-d, 0), (0, 0)), mode='constant',
+                                       constant_values=0)
+            elif d > 0:
+                shifted_right = np.pad(right_padded[:, d:, :], ((0, 0), (0, d), (0, 0)), mode='constant',
+                                       constant_values=0)
+            else:
+                shifted_right = right_padded
+
+            # Compute SSDD for each pixel
+            for i_ in range(num_of_rows):
+                for j_ in range(num_of_cols):
+                    i = i_ + half_win
+                    j = j_ + half_win
+                    # Extract the local windows for left and shifted right images
+                    left_window = left_padded[i:i + win_size, j:j + win_size, :]
+                    right_window = shifted_right[i:i + win_size, j:j + win_size, :]
+
+                    # Compute SSDD and store in the tensor
+                    ssdd_tensor[i_, j_, d_idx] = np.sum((left_window - right_window) ** 2)
+
+        ssdd_tensor -= ssdd_tensor.min()
+        ssdd_tensor /= ssdd_tensor.max()
+        ssdd_tensor *= 255.0
+        return ssdd_tensor
+
+
+    def our_labeling(self,ssdd_tensor):
+
+        # get the 3 best disparities for each pixel
+        our_lables = median_filter(self.naive_labeling(ssdd_tensor), size=11)
+
+        #label_no_smooth = np.argmin(ssdd_tensor, axis=-1,)
+        return self.naive_labeling(our_lables)

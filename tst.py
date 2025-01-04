@@ -20,8 +20,7 @@ import matplotlib.pyplot as plt
 # plt.show()
 #
 
-a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-a = np.rot90(a,-1)
-a = np.rot90(a,1)
+from solution import Solution
+solution = Solution()
 
-print(a)
+our_ssdd = solution.our_distance_measure(img_left, img_right, 3, 16)
